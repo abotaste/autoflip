@@ -1,446 +1,748 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>AutoFlip</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{
-  --bg:#07070f;--card:#0e0e1c;--card2:#141428;--border:#1e1e36;
-  --green:#00e87a;--red:#ff3c5a;--gold:#ffb800;--blue:#4d8dff;
-  --text:#eeeeff;--muted:#55557a;
-}
-html,body{height:100%;height:100dvh;overflow:hidden;background:var(--bg)}
-body{
-  font-family:'DM Sans',-apple-system,sans-serif;
-  color:var(--text);display:flex;flex-direction:column;
-  max-width:430px;margin:0 auto;height:100%;height:100dvh;
-}
-body::before{
-  content:'';position:fixed;inset:0;
-  background:radial-gradient(ellipse 80% 40% at 50% -5%,rgba(0,232,122,.06),transparent);
-  pointer-events:none;
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #07070f;
+  --card: #0e0e1c;
+  --card2: #141428;
+  --border: #222238;
+  --green: #00e87a;
+  --red: #ff3c5a;
+  --gold: #ffb800;
+  --blue: #4d8dff;
+  --text: #ffffff;
+  --muted: #7777aa;
 }
 
-/* TOPBAR */
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px 8px;flex-shrink:0}
-.logo{font-family:'Bebas Neue',Impact,fantasy;font-size:30px;letter-spacing:2px;background:linear-gradient(120deg,#00e87a,#00c4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.top-right{display:flex;gap:8px;align-items:center}
-.live-pill{display:flex;align-items:center;gap:5px;background:rgba(0,232,122,.07);border:1px solid rgba(0,232,122,.18);border-radius:20px;padding:5px 12px;font-size:11px;color:var(--green);font-weight:700;letter-spacing:.5px}
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.6s ease-in-out infinite;box-shadow:0 0 5px var(--green)}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.saved-btn{background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;color:var(--text);transition:all .2s}
-.saved-btn:active{transform:scale(.95)}
+html, body {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  color: var(--text);
+}
 
-/* STATS */
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 20px 8px;flex-shrink:0}
-.stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:9px 8px;text-align:center}
-.stat-l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
-.stat-v{font-family:'Bebas Neue',Impact,fantasy;font-size:19px;color:var(--green)}
+body {
+  display: flex;
+  flex-direction: column;
+  max-width: 430px;
+  margin: 0 auto;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
 
-/* CARD AREA */
-.card-area{flex:1;position:relative;padding:0 20px;overflow:hidden;min-height:0}
-.stack-wrap{position:absolute;inset:0 20px}
-.stack-bg{position:absolute;inset:0;background:var(--card);border:1px solid var(--border);border-radius:20px;transform-origin:bottom center}
-.stack-bg:nth-child(1){transform:translateY(7px) scale(.96);opacity:.4}
-.stack-bg:nth-child(2){transform:translateY(14px) scale(.92);opacity:.2}
-.deal-card{position:absolute;inset:0;background:var(--card);border:1px solid var(--border);border-radius:20px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.deal-card::-webkit-scrollbar{display:none}
-.hint{position:absolute;top:16px;padding:6px 14px;border-radius:8px;font-family:'Bebas Neue',Impact,fantasy;font-size:20px;letter-spacing:1px;opacity:0;pointer-events:none;z-index:10}
-.h-save{left:14px;background:rgba(0,232,122,.12);border:2px solid var(--green);color:var(--green)}
-.h-skip{right:14px;background:rgba(255,60,90,.12);border:2px solid var(--red);color:var(--red)}
+/* ── TOPBAR ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 8px;
+  flex-shrink: 0;
+}
 
-/* CARD CONTENT */
-.c-head{padding:16px 16px 12px;border-bottom:1px solid var(--border);background:linear-gradient(160deg,rgba(255,255,255,.015),transparent)}
-.c-badges{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px}
-.badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:6px;text-transform:uppercase;letter-spacing:.4px}
-.b-hot{background:rgba(255,60,90,.14);color:var(--red);border:1px solid rgba(255,60,90,.3)}
-.b-dmg{background:rgba(255,184,0,.1);color:var(--gold);border:1px solid rgba(255,184,0,.25)}
-.b-hyb{background:rgba(77,141,255,.1);color:var(--blue);border:1px solid rgba(77,141,255,.25)}
-.b-urg{background:rgba(255,130,60,.1);color:#ff9060;border:1px solid rgba(255,130,60,.25)}
-.b-ok{background:rgba(0,232,122,.07);color:var(--green);border:1px solid rgba(0,232,122,.18)}
-.b-new{background:rgba(180,100,255,.1);color:#c87aff;border:1px solid rgba(180,100,255,.25)}
-.c-title{font-family:'Bebas Neue',Impact,fantasy;font-size:26px;letter-spacing:.5px;line-height:1.1;margin-bottom:4px}
-.c-sub{font-size:12px;color:var(--muted)}
+.logo {
+  font-family: 'Bebas Neue', Impact, fantasy;
+  font-size: 36px;
+  letter-spacing: 2px;
+  background: linear-gradient(120deg, #00e87a, #00c4ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 
-.c-price{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)}
-.price-box{padding:13px 16px;border-right:1px solid var(--border)}
-.price-box:last-child{border-right:none}
-.price-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
-.price-num{font-family:'Bebas Neue',Impact,fantasy;font-size:28px;line-height:1}
-.p-ask{color:var(--text)}.p-bid{color:var(--gold)}.p-sell{color:var(--green)}
+.top-right { display: flex; gap: 10px; align-items: center; }
 
-.winst-bar{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;background:linear-gradient(135deg,rgba(0,232,122,.05),rgba(0,196,255,.03));border-bottom:1px solid rgba(0,232,122,.1)}
-.winst-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px}
-.winst-sub{font-size:12px;color:var(--muted)}
-.winst-num{font-family:'Bebas Neue',Impact,fantasy;font-size:28px;color:var(--green)}
-.winst-perc{font-size:13px;opacity:.55}
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0,232,122,.1);
+  border: 1.5px solid rgba(0,232,122,.25);
+  border-radius: 30px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: .5px;
+}
 
-.c-specs{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
-.spec-box{background:var(--card);padding:11px 16px}
-.spec-l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px}
-.spec-v{font-size:13px;font-weight:600}
+.live-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: blink 1.5s ease-in-out infinite;
+}
 
-.c-desc{padding:13px 16px;border-bottom:1px solid var(--border)}
-.c-desc-text{font-size:12px;color:var(--muted);line-height:1.65}
-.opties{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
-.optie{background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:10px;color:var(--muted)}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
 
-.c-contact{padding:14px 16px;background:var(--card2);border-bottom:1px solid var(--border)}
-.contact-name{font-size:15px;font-weight:700;margin-bottom:2px}
-.contact-meta{font-size:11px;color:var(--muted);margin-bottom:10px}
-.contact-phone{font-family:'Bebas Neue',Impact,fantasy;font-size:26px;color:var(--green);letter-spacing:.5px;margin-bottom:11px}
-.ext-links{display:flex;gap:7px}
-.ext-link{flex:1;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 4px;font-size:11px;font-weight:600;color:var(--muted);text-decoration:none;transition:all .15s}
-.ext-link:active{transform:scale(.95)}
-.ext-bel{color:var(--green);border-color:rgba(0,232,122,.2);background:rgba(0,232,122,.05)}
-.ext-mp{color:var(--blue);border-color:rgba(77,141,255,.2);background:rgba(77,141,255,.05)}
+.saved-badge {
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: 30px;
+  padding: 7px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--text);
+}
 
-.c-prog{display:flex;align-items:center;justify-content:center;gap:5px;padding:10px}
-.prog-dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:all .25s}
-.prog-dot.active{background:var(--green);transform:scale(1.4);box-shadow:0 0 5px var(--green)}
-.prog-dot.done{background:var(--muted)}
+/* ── STATS ── */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 0 20px 10px;
+  flex-shrink: 0;
+}
 
-/* ACTIONS */
-.actions{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:10px;padding:10px 20px env(safe-area-inset-bottom,20px);flex-shrink:0}
-.btn{border:none;border-radius:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-family:'DM Sans',sans-serif;transition:all .15s}
-.btn:active{transform:scale(.91)}
-.btn-skip{background:rgba(255,60,90,.08);border:1px solid rgba(255,60,90,.2);color:var(--red);padding:14px 8px}
-.btn-save{background:linear-gradient(135deg,#00e87a,#00c4ff);color:#000;padding:16px 8px;font-weight:700;box-shadow:0 4px 24px rgba(0,232,122,.2)}
-.btn-next{background:rgba(77,141,255,.08);border:1px solid rgba(77,141,255,.2);color:var(--blue);padding:14px 8px}
-.btn-icon{font-size:24px}
-.btn-lbl{font-size:10px;font-weight:700;opacity:.65;text-transform:uppercase;letter-spacing:.6px}
+.stat {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  padding: 10px 6px;
+  text-align: center;
+}
 
-/* LOADING / EMPTY */
-.state-card{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:30px}
-.state-icon{font-size:54px}
-.state-title{font-family:'Bebas Neue',Impact,fantasy;font-size:30px;letter-spacing:.5px}
-.state-sub{font-size:13px;color:var(--muted);line-height:1.7;max-width:280px}
-.spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.reload-btn{background:linear-gradient(135deg,#00e87a,#00c4ff);color:#000;border:none;border-radius:14px;padding:13px 30px;font-family:'Bebas Neue',Impact,fantasy;font-size:20px;cursor:pointer;letter-spacing:.5px;box-shadow:0 4px 20px rgba(0,232,122,.2)}
+.stat-label {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
 
-/* SAVED PANEL */
-#saved-panel{position:fixed;inset:0;background:var(--bg);z-index:80;display:none;flex-direction:column;max-width:430px;margin:0 auto}
-.saved-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
-.saved-header h2{font-family:'Bebas Neue',Impact,fantasy;font-size:26px;color:var(--green)}
-.close-btn{background:var(--card2);border:1px solid var(--border);border-radius:50%;width:34px;height:34px;cursor:pointer;color:var(--text);font-size:15px;display:flex;align-items:center;justify-content:center}
-#saved-list{flex:1;overflow-y:auto;padding:14px 20px;display:flex;flex-direction:column;gap:10px}
-.saved-item{background:var(--card);border:1px solid rgba(0,232,122,.15);border-radius:16px;padding:15px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;animation:slideUp .25s ease}
-@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.si-name{font-size:14px;font-weight:700;margin-bottom:3px}
-.si-meta{font-size:11px;color:var(--muted);margin-bottom:5px}
-.si-winst{font-family:'Bebas Neue',Impact,fantasy;font-size:22px;color:var(--green);text-align:right}
-.si-lbl{font-size:10px;color:var(--muted);text-align:right}
-.mp-btn{display:inline-block;margin-top:8px;background:rgba(0,232,122,.1);border:1px solid rgba(0,232,122,.25);color:var(--green);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;text-decoration:none;text-align:center}
-.empty-saved{text-align:center;padding:60px 20px;color:var(--muted)}
-.empty-saved .ei{font-size:52px;margin-bottom:12px}
+.stat-value {
+  font-family: 'Bebas Neue', fantasy;
+  font-size: 22px;
+  color: var(--green);
+}
+
+/* ── CARD AREA ── */
+.card-area {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  padding: 0 16px;
+}
+
+/* Stack shadow cards */
+.shadow-card {
+  position: absolute;
+  inset: 0 16px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 24px;
+  transform-origin: bottom center;
+}
+.shadow-card:nth-child(1) { transform: translateY(8px) scale(.96); opacity: .4; }
+.shadow-card:nth-child(2) { transform: translateY(16px) scale(.92); opacity: .2; }
+
+/* Main card */
+.main-card {
+  position: absolute;
+  inset: 0;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 24px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.main-card::-webkit-scrollbar { display: none; }
+
+/* Swipe hints */
+.swipe-hint {
+  position: absolute;
+  top: 20px;
+  z-index: 20;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-family: 'Bebas Neue', fantasy;
+  font-size: 22px;
+  letter-spacing: 1px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .1s;
+}
+.hint-save { left: 16px; background: rgba(0,232,122,.15); border: 2px solid var(--green); color: var(--green); }
+.hint-skip { right: 16px; background: rgba(255,60,90,.15); border: 2px solid var(--red); color: var(--red); }
+
+/* ── FOTO ── */
+.car-photo {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-bottom: 1.5px solid var(--border);
+  display: block;
+}
+
+/* ── CARD SECTIONS ── */
+.section {
+  padding: 16px 18px;
+  border-bottom: 1.5px solid var(--border);
+}
+
+/* Badges */
+.badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 11px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+.b-hot { background: rgba(255,60,90,.15); color: var(--red); border: 1.5px solid rgba(255,60,90,.3); }
+.b-dmg { background: rgba(255,184,0,.12); color: var(--gold); border: 1.5px solid rgba(255,184,0,.3); }
+.b-hyb { background: rgba(77,141,255,.12); color: var(--blue); border: 1.5px solid rgba(77,141,255,.3); }
+.b-urg { background: rgba(255,130,60,.12); color: #ff9060; border: 1.5px solid rgba(255,130,60,.3); }
+.b-ok  { background: rgba(0,232,122,.08); color: var(--green); border: 1.5px solid rgba(0,232,122,.2); }
+.b-live { background: rgba(0,232,122,.08); color: var(--green); border: 1.5px solid rgba(0,232,122,.2); }
+
+/* Title */
+.car-title {
+  font-family: 'Bebas Neue', fantasy;
+  font-size: 28px;
+  letter-spacing: .5px;
+  line-height: 1.15;
+  margin-bottom: 5px;
+}
+.car-sub { font-size: 14px; color: var(--muted); }
+
+/* Price grid */
+.price-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border-bottom: 1.5px solid var(--border);
+}
+.price-box {
+  background: var(--card);
+  padding: 16px 18px;
+}
+.price-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 4px; }
+.price-num { font-family: 'Bebas Neue', fantasy; font-size: 34px; line-height: 1; }
+.p-ask { color: var(--text); }
+.p-bid { color: var(--gold); }
+
+/* Winst banner */
+.winst-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, rgba(0,232,122,.07), rgba(0,196,255,.04));
+  border-bottom: 1.5px solid rgba(0,232,122,.12);
+}
+.winst-left .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 3px; }
+.winst-left .val { font-size: 15px; color: var(--muted); }
+.winst-right .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 3px; text-align: right; }
+.winst-num { font-family: 'Bebas Neue', fantasy; font-size: 36px; color: var(--green); text-align: right; line-height: 1; }
+.winst-perc { font-size: 16px; opacity: .6; }
+
+/* Specs */
+.specs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border-bottom: 1.5px solid var(--border);
+}
+.spec-box { background: var(--card); padding: 13px 18px; }
+.spec-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 4px; }
+.spec-val { font-size: 15px; font-weight: 600; }
+
+/* Beschrijving */
+.desc-text { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+/* Buttons */
+.btn-row { display: flex; gap: 10px; margin-top: 14px; }
+.link-btn {
+  flex: 1;
+  text-align: center;
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 13px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  text-decoration: none;
+  transition: all .15s;
+}
+.link-btn:active { transform: scale(.96); }
+.link-btn-mp { color: var(--green); border-color: rgba(0,232,122,.25); background: rgba(0,232,122,.06); }
+
+/* Progress dots */
+.progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px;
+}
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); transition: all .25s; }
+.dot.active { background: var(--green); transform: scale(1.5); box-shadow: 0 0 6px var(--green); }
+.dot.done { background: var(--muted); }
+
+/* ── ACTION BUTTONS ── */
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr 1fr;
+  gap: 12px;
+  padding: 12px 20px 16px;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.action-btn:active { transform: scale(.90); }
+
+.btn-skip {
+  background: rgba(255,60,90,.1);
+  border: 1.5px solid rgba(255,60,90,.25);
+  color: var(--red);
+  padding: 16px 8px;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #00e87a, #00c4ff);
+  color: #000;
+  padding: 18px 8px;
+  font-weight: 800;
+  box-shadow: 0 6px 28px rgba(0,232,122,.3);
+}
+
+.btn-next {
+  background: rgba(77,141,255,.1);
+  border: 1.5px solid rgba(77,141,255,.25);
+  color: var(--blue);
+  padding: 16px 8px;
+}
+
+.btn-icon { font-size: 28px; }
+.btn-label { font-size: 11px; font-weight: 700; opacity: .7; text-transform: uppercase; letter-spacing: .8px; }
+
+/* ── STATE CARDS ── */
+.state-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  padding: 32px;
+}
+
+.state-icon { font-size: 64px; }
+.state-title { font-family: 'Bebas Neue', fantasy; font-size: 36px; letter-spacing: .5px; }
+.state-sub { font-size: 15px; color: var(--muted); line-height: 1.7; }
+
+.spinner {
+  width: 52px; height: 52px;
+  border: 4px solid var(--border);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin .9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.reload-btn {
+  background: linear-gradient(135deg, #00e87a, #00c4ff);
+  color: #000;
+  border: none;
+  border-radius: 16px;
+  padding: 16px 36px;
+  font-family: 'Bebas Neue', fantasy;
+  font-size: 22px;
+  cursor: pointer;
+  letter-spacing: .5px;
+  box-shadow: 0 6px 24px rgba(0,232,122,.25);
+}
+
+/* ── SAVED PANEL ── */
+#saved-panel {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+  max-width: 430px;
+  margin: 0 auto;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1.5px solid var(--border);
+  flex-shrink: 0;
+}
+
+.panel-title { font-family: 'Bebas Neue', fantasy; font-size: 30px; color: var(--green); }
+
+.close-btn {
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+  width: 42px; height: 42px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+#saved-list { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+
+.saved-item {
+  background: var(--card);
+  border: 1.5px solid rgba(0,232,122,.2);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.si-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; line-height: 1.3; }
+.si-meta { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+.si-winst { font-family: 'Bebas Neue', fantasy; font-size: 28px; color: var(--green); text-align: right; }
+.si-lbl { font-size: 11px; color: var(--muted); text-align: right; }
+
+.open-btn {
+  display: block;
+  background: rgba(0,232,122,.08);
+  border: 1.5px solid rgba(0,232,122,.25);
+  color: var(--green);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  text-align: center;
+}
+
+.empty-saved { text-align: center; padding: 60px 20px; color: var(--muted); }
+.empty-saved .ei { font-size: 56px; margin-bottom: 14px; }
+.empty-saved p { font-size: 15px; line-height: 1.7; }
 </style>
+</head>
+<body>
 
+<!-- TOPBAR -->
 <div class="topbar">
   <div class="logo">AutoFlip</div>
   <div class="top-right">
-    <div class="live-pill"><div class="live-dot"></div>LIVE</div>
-    <div class="saved-btn" onclick="openSaved()">💾 <span id="saved-count">0</span></div>
+    <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+    <div class="saved-badge" onclick="openSaved()">💾 <span id="saved-count">0</span></div>
   </div>
 </div>
 
+<!-- STATS -->
 <div class="stats">
-  <div class="stat"><div class="stat-l">Live deals</div><div class="stat-v" id="s-leads">—</div></div>
-  <div class="stat"><div class="stat-l">Gem. winst</div><div class="stat-v" id="s-marge">—</div></div>
-  <div class="stat"><div class="stat-l">Beste deal</div><div class="stat-v" id="s-best">—</div></div>
+  <div class="stat">
+    <div class="stat-label">Deals</div>
+    <div class="stat-value" id="s-leads">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Gem. winst</div>
+    <div class="stat-value" id="s-marge">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Beste deal</div>
+    <div class="stat-value" id="s-best">—</div>
+  </div>
 </div>
 
+<!-- CARD AREA -->
 <div class="card-area">
-  <div class="stack-wrap">
-    <div class="stack-bg"></div>
-    <div class="stack-bg"></div>
-  </div>
-  <div class="deal-card" id="deal-card">
-    <div class="state-card">
+  <div class="shadow-card"></div>
+  <div class="shadow-card"></div>
+  <div class="main-card" id="main-card">
+    <div class="state-screen">
       <div class="spinner"></div>
-      <div class="state-title">Marktplaats laden...</div>
-      <div class="state-sub">Echte advertenties ophalen</div>
+      <div class="state-title">Scannen...</div>
+      <div class="state-sub">Echte Marktplaats deals ophalen</div>
     </div>
   </div>
 </div>
 
+<!-- ACTIONS -->
 <div class="actions">
-  <button class="btn btn-skip" onclick="skipDeal()"><span class="btn-icon">✕</span><span class="btn-lbl">Skip</span></button>
-  <button class="btn btn-save" onclick="saveDeal()"><span class="btn-icon">💾</span><span class="btn-lbl">Opslaan</span></button>
-  <button class="btn btn-next" onclick="nextDeal()"><span class="btn-icon">→</span><span class="btn-lbl">Volgende</span></button>
+  <button class="action-btn btn-skip" onclick="skipDeal()">
+    <span class="btn-icon">✕</span>
+    <span class="btn-label">Skip</span>
+  </button>
+  <button class="action-btn btn-save" onclick="saveDeal()">
+    <span class="btn-icon">💾</span>
+    <span class="btn-label">Opslaan</span>
+  </button>
+  <button class="action-btn btn-next" onclick="nextDeal()">
+    <span class="btn-icon">→</span>
+    <span class="btn-label">Volgende</span>
+  </button>
 </div>
 
+<!-- SAVED PANEL -->
 <div id="saved-panel">
-  <div class="saved-header">
-    <h2>💾 Opgeslagen</h2>
+  <div class="panel-header">
+    <div class="panel-title">💾 Opgeslagen deals</div>
     <button class="close-btn" onclick="closeSaved()">✕</button>
   </div>
-  <div id="saved-list"></div>
+  <div id="saved-list">
+    <div class="empty-saved">
+      <div class="ei">📭</div>
+      <p>Nog niets opgeslagen.<br>Swipe rechts of druk 💾.</p>
+    </div>
+  </div>
 </div>
 
 <script>
-// ─── CONFIG ───────────────────────────────────────────────────────────
-// Marktplaats categorie IDs voor auto's
-// l1CategoryId=91 = Auto's
-// Zoektermen rouleren voor maximale coverage
-const SEARCHES = [
-  { q: 'toyota yaris',    maxPrijs: 5000 },
-  { q: 'kia picanto',     maxPrijs: 5000 },
-  { q: 'volkswagen polo', maxPrijs: 5000 },
-  { q: 'suzuki swift',    maxPrijs: 5000 },
-  { q: 'opel corsa',      maxPrijs: 5000 },
-];
-
-// Geschatte verkoopprijzen per model (realistische marktdata NL)
-const VERKOOPPRIJZEN = {
-  'yaris':   { basis: 1800, perJaar: 300, perKm: 0.008 },
-  'picanto': { basis: 1600, perJaar: 280, perKm: 0.007 },
-  'polo':    { basis: 2000, perJaar: 350, perKm: 0.009 },
-  'swift':   { basis: 1900, perJaar: 320, perKm: 0.008 },
-  'corsa':   { basis: 1700, perJaar: 290, perKm: 0.007 },
-  'fiesta':  { basis: 1500, perJaar: 260, perKm: 0.007 },
-  'default': { basis: 1800, perJaar: 300, perKm: 0.008 },
-};
-
-// CORS proxies (probeer achtereenvolgens)
+// ── CONFIG ────────────────────────────────────────────────────────────
+const ZOEKTERMEN = ['toyota yaris','kia picanto','volkswagen polo','suzuki swift','opel corsa'];
 const PROXIES = [
   'https://corsproxy.io/?',
   'https://api.allorigins.win/raw?url=',
-  'https://cors-anywhere.herokuapp.com/',
 ];
 
-// ─── STATE ────────────────────────────────────────────────────────────
+const MARGES = {
+  yaris:   { mult: 1.30 },
+  picanto: { mult: 1.28 },
+  polo:    { mult: 1.32 },
+  swift:   { mult: 1.29 },
+  corsa:   { mult: 1.27 },
+  fiesta:  { mult: 1.25 },
+  default: { mult: 1.28 },
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────
 let deals = [];
 let cur = 0;
 let saved = [];
 let isAnim = false;
-let tx0=0,ty0=0,dx=0,drag=false;
+let tx = 0, ty = 0, dx = 0, dragging = false;
 
-// ─── BOOT ─────────────────────────────────────────────────────────────
-laadDeals();
+// ── BOOT ──────────────────────────────────────────────────────────────
+window.addEventListener('load', laadDeals);
 
-// ─── DATA OPHALEN ─────────────────────────────────────────────────────
+// ── DATA ──────────────────────────────────────────────────────────────
 async function laadDeals() {
-  setLoading('Marktplaats scannen...', 'Echte advertenties ophalen');
-  
-  const alleItems = [];
-  
-  // Probeer meerdere zoekopdrachten
-  for (const search of SEARCHES) {
+  toonLaadScherm('Marktplaats scannen...', 'Live advertenties ophalen');
+  const items = [];
+
+  for (const term of ZOEKTERMEN) {
     try {
-      const items = await zoekMarktplaats(search.q, search.maxPrijs);
-      alleItems.push(...items);
-      if (alleItems.length >= 15) break;
+      const batch = await zoekMP(term);
+      items.push(...batch);
+      if (items.length >= 20) break;
     } catch(e) {
-      console.warn('Zoek fout:', search.q, e.message);
+      console.warn(term, e.message);
     }
   }
-  
-  if (alleItems.length === 0) {
-    toonFout('Geen verbinding', 'Kan Marktplaats niet bereiken. Controleer je internetverbinding en probeer opnieuw.');
+
+  if (!items.length) {
+    toonFout('Geen verbinding', 'Controleer je internet en probeer opnieuw.');
     return;
   }
 
-  // Verwerk en sorteer op beste marge
-  deals = alleItems
-    .map(verwerkItem)
-    .filter(d => d !== null)
-    .sort((a, b) => (b.winst / b.vraagprijs) - (a.winst / a.vraagprijs));
+  deals = items.map(verwerk).filter(Boolean)
+    .sort((a, b) => b.winstPerc - a.winstPerc);
 
   updateStats();
   cur = 0;
-  render();
-  initTouch();
+  toonDeal();
+  initSwipe();
 }
 
-async function zoekMarktplaats(query, maxPrijs) {
-  const mpUrl = `https://www.marktplaats.nl/lrp/api/search?query=${encodeURIComponent(query)}&l1CategoryId=91&priceTo=${maxPrijs}&limit=10&offset=0&sortBy=SORT_INDEX&sortOrder=DECREASING`;
-  
-  // Probeer elke proxy
+async function zoekMP(query) {
+  const url = `https://www.marktplaats.nl/lrp/api/search?query=${encodeURIComponent(query)}&l1CategoryId=91&priceTo=5000&limit=10&offset=0&sortBy=SORT_INDEX&sortOrder=DECREASING`;
+
   for (const proxy of PROXIES) {
     try {
-      const res = await fetch(proxy + encodeURIComponent(mpUrl), {
-        headers: { 'Accept': 'application/json' },
-        signal: AbortSignal.timeout(8000)
+      const res = await fetch(proxy + encodeURIComponent(url), {
+        signal: AbortSignal.timeout(9000)
       });
-      
       if (!res.ok) continue;
-      
       const data = await res.json();
-      const listings = data.listings || data.data?.listings || [];
-      return listings;
-      
+      return data.listings || data.data?.listings || [];
     } catch(e) {
-      console.warn(`Proxy ${proxy} mislukt:`, e.message);
+      console.warn('Proxy mislukt:', proxy);
     }
   }
-  
-  throw new Error('Alle proxies mislukt');
+  return [];
 }
 
-function verwerkItem(item) {
+function verwerk(item) {
   try {
-    // Haal prijs op
-    const vraagprijs = item.priceInfo?.priceCents 
+    const prijs = item.priceInfo?.priceCents
       ? Math.round(item.priceInfo.priceCents / 100)
-      : item.price?.amount || 0;
-    
-    if (!vraagprijs || vraagprijs < 300 || vraagprijs > 6000) return null;
-    
-    const titel = item.title || item.l3CategoryName || 'Auto';
-    const beschrijving = item.description || item.shortDescription || '';
-    const locatie = item.location?.cityName || item.sellerLocation?.cityName || 'Nederland';
-    const url = item.vipUrl 
-      ? `https://www.marktplaats.nl${item.vipUrl}`
-      : `https://www.marktplaats.nl/l/auto-s/`;
-    
-    // Detecteer model voor margeberekening
-    const titelLower = titel.toLowerCase();
-    const modelKey = Object.keys(VERKOOPPRIJZEN).find(k => titelLower.includes(k)) || 'default';
-    const mp = VERKOOPPRIJZEN[modelKey];
-    
-    // Schat bouwjaar en km uit tekst als niet beschikbaar
-    const bouwjaar = item.attributes?.find(a => a.key === 'constructionYear')?.value 
-      || extractGetal(beschrijving + ' ' + titel, /20\d\d|199\d/) 
-      || 2013;
-    
-    const km = item.attributes?.find(a => a.key === 'mileage')?.value
-      || extractGetal(beschrijving, /(\d+)[\.\s]?(\d{3})\s*km/i, true)
-      || 120000;
-    
-    // Bereken verwachte verkoopprijs
-    const ouderdom = new Date().getFullYear() - parseInt(bouwjaar);
-    const verwacht = Math.round(
-      vraagprijs * 1.25 + // Marge bovenop inkoop
-      Math.max(0, mp.perJaar * (10 - ouderdom)) -
-      (parseInt(km) * mp.perKm * 0.1)
-    );
-    const verwachteVerkoop = Math.max(vraagprijs + 400, Math.min(verwacht, vraagprijs * 1.6));
-    
-    const biedAdvies = Math.round(vraagprijs * 0.82);
-    const winst = verwachteVerkoop - biedAdvies;
-    
-    // Bepaal soort en hot
-    const descLower = beschrijving.toLowerCase();
-    const soort = descLower.includes('schade') || descLower.includes('deuk') || descLower.includes('kras') 
-      ? 'schade'
-      : descLower.includes('hybrid') || titelLower.includes('hybrid') 
-      ? 'hybrid'
-      : descLower.includes('snel weg') || descLower.includes('emigrat') || descLower.includes('urgent')
-      ? 'urgent'
+      : 0;
+
+    if (!prijs || prijs < 400 || prijs > 5500) return null;
+
+    const titel  = item.title || 'Auto';
+    const desc   = (item.description || '').slice(0, 250);
+    const loc    = item.location?.cityName || item.sellerLocation?.cityName || 'Nederland';
+    const url    = item.vipUrl ? `https://www.marktplaats.nl${item.vipUrl}` : 'https://www.marktplaats.nl/l/auto-s/';
+    const foto   = item.pictures?.[0]?.mediumUrl || item.pictures?.[0]?.extraExtraLargeUrl || null;
+    const datum  = item.date ? new Date(item.date).toLocaleDateString('nl-NL', {day:'numeric',month:'short'}) : 'Recent';
+    const verkoper = item.sellerInformation?.displayName || 'Particulier';
+
+    const key = Object.keys(MARGES).find(k => titel.toLowerCase().includes(k)) || 'default';
+    const bod = Math.round(prijs * 0.82);
+    const verkoop = Math.round(prijs * MARGES[key].mult);
+    const winst = verkoop - bod;
+    const winstPerc = Math.round(winst / bod * 100);
+
+    const descL = desc.toLowerCase();
+    const soort = descL.includes('hybrid') || titel.toLowerCase().includes('hybrid') ? 'hybrid'
+      : descL.includes('schade') || descL.includes('deuk') || descL.includes('kras') ? 'schade'
+      : descL.includes('snel weg') || descL.includes('emigrat') ? 'urgent'
       : 'rijklaar';
-    
-    const winstPerc = winst / biedAdvies;
-    const hot = winstPerc > 0.25 || soort === 'urgent';
-    
-    // Foto
-    const foto = item.pictures?.[0]?.mediumUrl 
-      || item.imageUrls?.[0]
-      || null;
-    
-    return {
-      titel, beschrijving: beschrijving.slice(0, 200),
-      vraagprijs, biedAdvies, verwachteVerkoop, winst,
-      bouwjaar: parseInt(bouwjaar),
-      km: parseInt(km),
-      locatie, url, foto,
-      soort, hot,
-      verkoper: item.sellerInformation?.displayName || 'Particulier',
-      datum: item.date || 'Recent geplaatst',
-    };
-  } catch(e) {
-    return null;
-  }
+
+    const hot = winstPerc >= 28 || soort === 'urgent';
+
+    return { titel, desc, loc, url, foto, datum, verkoper, prijs, bod, verkoop, winst, winstPerc, soort, hot };
+  } catch(e) { return null; }
 }
 
-function extractGetal(tekst, regex, dubbel = false) {
-  const match = tekst.toString().match(regex);
-  if (!match) return null;
-  if (dubbel && match[2]) return parseInt(match[1] + match[2]);
-  return parseInt(match[0]);
-}
-
-// ─── UI ───────────────────────────────────────────────────────────────
+// ── STATS ─────────────────────────────────────────────────────────────
 function updateStats() {
   document.getElementById('s-leads').textContent = deals.length;
-  if (deals.length > 0) {
-    const marges = deals.map(d => d.winst);
-    const gem = Math.round(marges.reduce((a,b)=>a+b,0)/marges.length);
-    document.getElementById('s-marge').textContent = '€'+gem.toLocaleString('nl-NL');
-    document.getElementById('s-best').textContent = '€'+Math.max(...marges).toLocaleString('nl-NL');
-  }
+  const marges = deals.map(d => d.winst);
+  const gem = Math.round(marges.reduce((a,b)=>a+b,0)/marges.length);
+  document.getElementById('s-marge').textContent = '€' + gem.toLocaleString('nl-NL');
+  document.getElementById('s-best').textContent  = '€' + Math.max(...marges).toLocaleString('nl-NL');
 }
 
-function render() {
-  const card = document.getElementById('deal-card');
+// ── RENDER ────────────────────────────────────────────────────────────
+function toonDeal() {
+  const card = document.getElementById('main-card');
   card.style.cssText = 'transform:none;opacity:1;transition:none';
 
   if (cur >= deals.length) {
-    card.innerHTML = `<div class="state-card">
-      <div class="state-icon">✅</div>
-      <div class="state-title">Batch klaar!</div>
-      <div class="state-sub">Je hebt alle ${deals.length} deals bekeken. Nieuwe batch laden?</div>
-      <button class="reload-btn" onclick="laadDeals()">⚡ Nieuwe deals</button>
-    </div>`;
+    card.innerHTML = `
+      <div class="state-screen">
+        <div class="state-icon">✅</div>
+        <div class="state-title">Klaar!</div>
+        <div class="state-sub">Je hebt alle ${deals.length} deals bekeken.</div>
+        <button class="reload-btn" onclick="laadDeals()">⚡ Nieuwe deals</button>
+      </div>`;
     return;
   }
 
   const d = deals[cur];
-  const perc = Math.round(d.winst / d.biedAdvies * 100);
 
   const badges = [];
-  if (d.hot)             badges.push('<span class="badge b-hot">🔥 HOT DEAL</span>');
+  if (d.hot)              badges.push('<span class="badge b-hot">🔥 HOT DEAL</span>');
   if (d.soort==='schade') badges.push('<span class="badge b-dmg">⚠️ SCHADE</span>');
   if (d.soort==='urgent') badges.push('<span class="badge b-urg">⏰ URGENT</span>');
   if (d.soort==='hybrid') badges.push('<span class="badge b-hyb">⚡ HYBRIDE</span>');
-  if (d.soort==='rijklaar'&&!d.hot) badges.push('<span class="badge b-ok">✅ RIJKLAAR</span>');
-  badges.push('<span class="badge b-new">🔴 LIVE</span>');
+  if (!d.hot && d.soort==='rijklaar') badges.push('<span class="badge b-ok">✅ RIJKLAAR</span>');
+  badges.push('<span class="badge b-live">🔴 LIVE</span>');
 
-  const dots = deals.slice(0, Math.min(deals.length, 12)).map((_,i) =>
-    `<div class="prog-dot ${i===cur?'active':i<cur?'done':''}"></div>`
+  const dots = deals.slice(0, Math.min(deals.length, 10)).map((_,i) =>
+    `<div class="dot ${i===cur?'active':i<cur?'done':''}"></div>`
   ).join('');
 
-  const fotoHtml = d.foto 
-    ? `<img src="${d.foto}" style="width:100%;height:140px;object-fit:cover;border-bottom:1px solid var(--border)" onerror="this.style.display='none'">`
+  const fotoHtml = d.foto
+    ? `<img class="car-photo" src="${d.foto}" onerror="this.style.display='none'">`
     : '';
 
+  const asUrl = `https://www.autoscout24.nl/lst?q=${encodeURIComponent(d.titel.split(' ').slice(0,3).join(' '))}&priceto=${d.prijs+1000}&cy=NL`;
+
   card.innerHTML = `
-    <div class="hint h-save" id="hs">OPSLAAN ✓</div>
-    <div class="hint h-skip" id="hk">SKIP ✕</div>
+    <div class="swipe-hint hint-save" id="hint-save">OPSLAAN ✓</div>
+    <div class="swipe-hint hint-skip" id="hint-skip">SKIP ✕</div>
+
     ${fotoHtml}
-    <div class="c-head">
-      <div class="c-badges">${badges.join('')}</div>
-      <div class="c-title">${d.titel}</div>
-      <div class="c-sub">📍 ${d.locatie} · ${d.datum}</div>
+
+    <div class="section">
+      <div class="badges">${badges.join('')}</div>
+      <div class="car-title">${d.titel}</div>
+      <div class="car-sub">📍 ${d.loc} &nbsp;·&nbsp; ${d.datum}</div>
     </div>
-    <div class="c-price">
-      <div class="price-box"><div class="price-lbl">Vraagprijs</div><div class="price-num p-ask">€${d.vraagprijs.toLocaleString('nl-NL')}</div></div>
-      <div class="price-box"><div class="price-lbl">Jouw bod</div><div class="price-num p-bid">€${d.biedAdvies.toLocaleString('nl-NL')}</div></div>
-    </div>
-    <div class="winst-bar">
-      <div><div class="winst-lbl">Verwachte verkoopprijs</div><div class="winst-sub">€${d.verwachteVerkoop.toLocaleString('nl-NL')}</div></div>
-      <div style="text-align:right"><div class="winst-lbl">Potentiële winst</div><div class="winst-num">+€${d.winst.toLocaleString('nl-NL')} <span class="winst-perc">${perc}%</span></div></div>
-    </div>
-    <div class="c-specs">
-      <div class="spec-box"><div class="spec-l">Bouwjaar</div><div class="spec-v">${d.bouwjaar || '?'}</div></div>
-      <div class="spec-box"><div class="spec-l">Kilometerstand</div><div class="spec-v">${d.km ? d.km.toLocaleString('nl-NL')+' km' : 'Zie adv.'}</div></div>
-      <div class="spec-box"><div class="spec-l">Locatie</div><div class="spec-v">${d.locatie}</div></div>
-      <div class="spec-box"><div class="spec-l">Verkoper</div><div class="spec-v" style="font-size:11px">${d.verkoper}</div></div>
-    </div>
-    <div class="c-desc">
-      <p class="c-desc-text">${d.beschrijving || 'Zie advertentie voor meer informatie.'}</p>
-    </div>
-    <div class="c-contact">
-      <div class="contact-name">${d.verkoper}</div>
-      <div class="contact-meta">Marktplaats · ${d.locatie} · ${d.datum}</div>
-      <div class="ext-links">
-        <a class="ext-link ext-mp" href="${d.url}" target="_blank">🔗 Bekijk advertentie</a>
-        <a class="ext-link" href="https://www.autoscout24.nl/lst?q=${encodeURIComponent(d.titel.split(' ').slice(0,3).join(' '))}&priceto=${d.vraagprijs+1000}&cy=NL" target="_blank">🔍 AutoScout24</a>
+
+    <div class="price-grid">
+      <div class="price-box">
+        <div class="price-lbl">Vraagprijs</div>
+        <div class="price-num p-ask">€${d.prijs.toLocaleString('nl-NL')}</div>
+      </div>
+      <div class="price-box">
+        <div class="price-lbl">Jouw bod</div>
+        <div class="price-num p-bid">€${d.bod.toLocaleString('nl-NL')}</div>
       </div>
     </div>
-    <div class="c-prog">${dots}</div>`;
+
+    <div class="winst-banner">
+      <div class="winst-left">
+        <div class="lbl">Verkoopprijs</div>
+        <div class="val">€${d.verkoop.toLocaleString('nl-NL')}</div>
+      </div>
+      <div class="winst-right">
+        <div class="lbl">Potentiële winst</div>
+        <div class="winst-num">+€${d.winst.toLocaleString('nl-NL')} <span class="winst-perc">${d.winstPerc}%</span></div>
+      </div>
+    </div>
+
+    <div class="specs-grid">
+      <div class="spec-box">
+        <div class="spec-lbl">Locatie</div>
+        <div class="spec-val">${d.loc}</div>
+      </div>
+      <div class="spec-box">
+        <div class="spec-lbl">Verkoper</div>
+        <div class="spec-val">${d.verkoper}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <p class="desc-text">${d.desc || 'Bekijk de advertentie voor meer informatie.'}</p>
+      <div class="btn-row">
+        <a class="link-btn link-btn-mp" href="${d.url}" target="_blank">🔗 Open advertentie</a>
+        <a class="link-btn" href="${asUrl}" target="_blank">🔍 AutoScout24</a>
+      </div>
+    </div>
+
+    <div class="progress">${dots}</div>
+  `;
 }
 
-function setLoading(titel, sub) {
-  document.getElementById('deal-card').innerHTML = `
-    <div class="state-card">
+function toonLaadScherm(titel, sub) {
+  document.getElementById('main-card').innerHTML = `
+    <div class="state-screen">
       <div class="spinner"></div>
       <div class="state-title">${titel}</div>
       <div class="state-sub">${sub}</div>
@@ -448,93 +750,102 @@ function setLoading(titel, sub) {
 }
 
 function toonFout(titel, sub) {
-  document.getElementById('deal-card').innerHTML = `
-    <div class="state-card">
+  document.getElementById('main-card').innerHTML = `
+    <div class="state-screen">
       <div class="state-icon">⚠️</div>
       <div class="state-title">${titel}</div>
       <div class="state-sub">${sub}</div>
-      <button class="reload-btn" onclick="laadDeals()">↻ Opnieuw proberen</button>
+      <button class="reload-btn" onclick="laadDeals()">↻ Opnieuw</button>
     </div>`;
 }
 
-// ─── SWIPE ────────────────────────────────────────────────────────────
-function initTouch() {
-  const card = document.getElementById('deal-card');
+// ── SWIPE ─────────────────────────────────────────────────────────────
+function initSwipe() {
+  const card = document.getElementById('main-card');
   card.addEventListener('touchstart', e => {
-    if(isAnim)return;
-    tx0=e.touches[0].clientX;ty0=e.touches[0].clientY;dx=0;drag=false;
-  },{passive:true});
-  
+    if (isAnim) return;
+    tx = e.touches[0].clientX;
+    ty = e.touches[0].clientY;
+    dx = 0; dragging = false;
+  }, { passive: true });
+
   card.addEventListener('touchmove', e => {
-    if(isAnim)return;
-    const ddx=e.touches[0].clientX-tx0,ddy=e.touches[0].clientY-ty0;
-    if(!drag&&Math.abs(ddy)>Math.abs(ddx))return;
-    drag=true;e.preventDefault();dx=ddx;
-    const c=document.getElementById('deal-card');
-    c.style.transition='none';
-    c.style.transform=`translateX(${dx}px) rotate(${dx*.04}deg)`;
-    const hs=document.getElementById('hs'),hk=document.getElementById('hk');
-    if(hs&&hk){
-      hs.style.opacity=dx>60?Math.min((dx-60)/80,1):0;
-      hk.style.opacity=dx<-60?Math.min((-dx-60)/80,1):0;
+    if (isAnim) return;
+    const ddx = e.touches[0].clientX - tx;
+    const ddy = e.touches[0].clientY - ty;
+    if (!dragging && Math.abs(ddy) > Math.abs(ddx)) return;
+    dragging = true;
+    e.preventDefault();
+    dx = ddx;
+    card.style.transition = 'none';
+    card.style.transform = `translateX(${dx}px) rotate(${dx * .04}deg)`;
+    const hs = document.getElementById('hint-save');
+    const hk = document.getElementById('hint-skip');
+    if (hs && hk) {
+      hs.style.opacity = dx > 60 ? Math.min((dx-60)/70, 1) : 0;
+      hk.style.opacity = dx < -60 ? Math.min((-dx-60)/70, 1) : 0;
     }
-  },{passive:false});
-  
+  }, { passive: false });
+
   card.addEventListener('touchend', () => {
-    if(!drag)return;drag=false;
-    if(dx>100)saveDeal();
-    else if(dx<-100)skipDeal();
-    else{
-      const c=document.getElementById('deal-card');
-      c.style.transition='transform .3s cubic-bezier(.22,.68,0,1.2)';
-      c.style.transform='none';
-      const hs=document.getElementById('hs'),hk=document.getElementById('hk');
-      if(hs)hs.style.opacity=0;if(hk)hk.style.opacity=0;
+    if (!dragging) return;
+    dragging = false;
+    if (dx > 110) saveDeal();
+    else if (dx < -110) skipDeal();
+    else {
+      card.style.transition = 'transform .35s cubic-bezier(.22,.68,0,1.2)';
+      card.style.transform = 'none';
+      const hs = document.getElementById('hint-save');
+      const hk = document.getElementById('hint-skip');
+      if (hs) hs.style.opacity = 0;
+      if (hk) hk.style.opacity = 0;
     }
-  },{passive:true});
+  }, { passive: true });
 }
 
-// ─── ACTIONS ──────────────────────────────────────────────────────────
+// ── ACTIES ────────────────────────────────────────────────────────────
 function animOut(dir, cb) {
-  isAnim=true;
-  const c=document.getElementById('deal-card');
-  c.style.transition='transform .28s ease,opacity .28s ease';
-  c.style.transform=`translateX(${dir==='r'?480:-480}px) rotate(${dir==='r'?14:-14}deg)`;
-  c.style.opacity='0';
-  setTimeout(()=>{isAnim=false;cb();initTouch();},280);
+  isAnim = true;
+  const card = document.getElementById('main-card');
+  card.style.transition = 'transform .28s ease, opacity .28s ease';
+  card.style.transform = `translateX(${dir==='r'?500:-500}px) rotate(${dir==='r'?15:-15}deg)`;
+  card.style.opacity = '0';
+  setTimeout(() => { isAnim = false; cb(); initSwipe(); }, 290);
 }
 
-function skipDeal(){if(!isAnim)animOut('l',()=>{cur++;render();})}
-function nextDeal(){if(!isAnim)animOut('l',()=>{cur++;render();})}
-function saveDeal(){
-  if(isAnim||cur>=deals.length)return;
+function skipDeal()  { if (!isAnim) animOut('l', () => { cur++; toonDeal(); }); }
+function nextDeal()  { if (!isAnim) animOut('l', () => { cur++; toonDeal(); }); }
+function saveDeal()  {
+  if (isAnim || cur >= deals.length) return;
   saved.push(deals[cur]);
-  document.getElementById('saved-count').textContent=saved.length;
+  document.getElementById('saved-count').textContent = saved.length;
   renderSaved();
-  animOut('r',()=>{cur++;render();});
+  animOut('r', () => { cur++; toonDeal(); });
 }
 
-// ─── SAVED ────────────────────────────────────────────────────────────
-function openSaved(){const p=document.getElementById('saved-panel');p.style.display='flex';p.style.flexDirection='column';}
-function closeSaved(){document.getElementById('saved-panel').style.display='none';}
+// ── SAVED ─────────────────────────────────────────────────────────────
+function openSaved()  { const p = document.getElementById('saved-panel'); p.style.display = 'flex'; p.style.flexDirection = 'column'; }
+function closeSaved() { document.getElementById('saved-panel').style.display = 'none'; }
 
-function renderSaved(){
-  const list=document.getElementById('saved-list');
-  if(!saved.length){
-    list.innerHTML='<div class="empty-saved"><div class="ei">📭</div><p>Nog niets opgeslagen.<br>Swipe rechts of druk 💾.</p></div>';
+function renderSaved() {
+  const list = document.getElementById('saved-list');
+  if (!saved.length) {
+    list.innerHTML = '<div class="empty-saved"><div class="ei">📭</div><p>Nog niets opgeslagen.<br>Swipe rechts of druk 💾.</p></div>';
     return;
   }
-  list.innerHTML=saved.map(d=>`
+  list.innerHTML = saved.map(d => `
     <div class="saved-item">
-      <div>
-        <div class="si-name">${d.titel}</div>
-        <div class="si-meta">📍 ${d.locatie} · bod <strong style="color:var(--gold)">€${d.biedAdvies.toLocaleString('nl-NL')}</strong></div>
-        <a class="mp-btn" href="${d.url}" target="_blank">🔗 Open advertentie op Marktplaats</a>
+      <div style="flex:1;min-width:0">
+        <div class="si-title">${d.titel}</div>
+        <div class="si-meta">📍 ${d.loc} · bod <strong style="color:var(--gold)">€${d.bod.toLocaleString('nl-NL')}</strong></div>
+        <a class="open-btn" href="${d.url}" target="_blank">🔗 Open op Marktplaats</a>
       </div>
-      <div style="flex-shrink:0">
+      <div style="flex-shrink:0;padding-left:8px">
         <div class="si-winst">+€${d.winst.toLocaleString('nl-NL')}</div>
         <div class="si-lbl">winst</div>
       </div>
     </div>`).join('');
 }
 </script>
+</body>
+</html>
